@@ -1,2 +1,2 @@
-# Adventure-Project
-A modular Python Project delivering an immersive Text Adventure experience with randomized outcomes and strategic decision-making.
+A Python-based interactive text game promoting ethics, transparency, and responsibility in public service through immersive storytelling and decision-making.
+
