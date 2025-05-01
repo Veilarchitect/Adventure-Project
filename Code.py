@@ -2,84 +2,53 @@ import time
 import random
 
 # --- Game Configuration ---
-SLOW_PRINT_DELAY = 0.03 # Delay for character by character printing
-SPEAK_PAUSE = 1.5       # Default pause after a full message
-WIN_INTEGRITY = 100     # Integrity score needed to win
-LOSE_INTEGRITY = 0      # Integrity score threshold for losing
-MAX_LINE_LENGTH = 79    # Target maximum line length for readability
-NUM_SCENARIOS_TO_PLAY = 5 # How many scenarios to run per game
+SLOW_PRINT_DELAY = 0.03  # Delay for character by character printing
+SPEAK_PAUSE = 1.5        # Default pause after a full message
+WIN_INTEGRITY = 100      # Integrity score needed to win
+LOSE_INTEGRITY = 0       # Integrity score threshold for losing
+MAX_LINE_LENGTH = 79     # Target maximum line length for readability
+NUM_SCENARIOS_TO_PLAY = 5  # How many scenarios to run per game
 
 # --- Helper Functions ---
 
-def slow_print(text, delay=SLOW_PRINT_DELAY):
-    """Prints text character by character for a typewriter effect."""
+def slow_print(text: str, delay: float = SLOW_PRINT_DELAY) -> None:
+    """Print text character by character for a typewriter effect."""
     for char in text:
         print(char, end="", flush=True)
         time.sleep(delay)
-    print() # Newline at the end
+    print()  # Newline at the end
 
-def speak(message, pause=SPEAK_PAUSE):
-    """Prints a message using slow_print and adds a pause. Includes word wrap."""
-    # Simple word wrap for long messages to approach MAX_LINE_LENGTH
+
+def speak(message: str, pause: float = SPEAK_PAUSE) -> None:
+    """Print message using slow_print with pause.
+
+    Includes word wrap functionality for long messages.
+    """
     words = message.split(" ")
     lines = []
     current_line = ""
+
     for word in words:
         if not current_line:
             current_line = word
-        # Check length *before* adding the space and word
         elif len(current_line) + 1 + len(word) <= MAX_LINE_LENGTH:
             current_line += " " + word
         else:
             lines.append(current_line)
             current_line = word
-    lines.append(current_line) # Add the last line
+    lines.append(current_line)  # Add the last line
 
     for line in lines:
         slow_print(line)
     time.sleep(pause)
 
-def make_choice(question, options, game_state):
-    """Prompts the player to make a choice and returns the selected option index."""
-    speak(f"\n--- {question} ---")
-    for idx, option in enumerate(options):
-        # Use a slightly shorter pause for options
-        speak(f"{idx + 1}. {option}", pause=0.5)
 
-    while True:
-        # Prompt user for input, stripping leading/trailing whitespace
-        choice_input = input(f"Enter your choice (1-{len(options)}): ").strip()
-        if choice_input.isdigit():
-            choice_num = int(choice_input)
-            # Validate if the choice number is within the valid range
-            if 1 <= choice_num <= len(options):
-                # Return the 0-based index
-                return choice_num - 1
-            else:
-                speak("Invalid choice number. Please try again.", pause=1)
-        else:
-            speak("Please enter a number.", pause=1)
+def initialize_game_state() -> dict:
+    """Initialize dictionary tracking player progress and stats.
 
-def display_separator():
-    """Prints a separator line."""
-    # Use MAX_LINE_LENGTH for separator width for consistency
-    print("\n" + "=" * MAX_LINE_LENGTH + "\n")
-
-def display_stats(game_state):
-    """Displays the current core stats."""
-    # Format the stats string for display
-    stats_string = (
-        f"[Stats: Integrity: {game_state['integrity']}, "
-        f"Reputation: {game_state['reputation']}, "
-        f"Stress: {game_state['stress']}]"
-    )
-    speak(stats_string, pause=0.5)
-
-
-# --- Game State Initialization ---
-
-def initialize_game_state():
-    """Initializes the dictionary tracking player progress and stats."""
+    Returns:
+        dict: The initialized game state dictionary.
+    """
     return {
         "integrity": 50,      # Starts neutral
         "reputation": 50,     # Starts neutral
@@ -88,7 +57,6 @@ def initialize_game_state():
         "inspiration": 0,     # Gained from positive influences
         "caution": 0,         # Gained from warnings
         "colleague_relation": {"mentor": 0, "rival": 0, "ally": 0},
-        # Flags for specific events/choices made during the game
         "corruption_exposed": False,
         "corruption_leaked": False,
         "corruption_ignored": False,
@@ -107,28 +75,72 @@ def initialize_game_state():
         "promotion_bias_action": None,
     }
 
-# --- Introduction ---
 
-def intro():
-    """Displays the game's introduction."""
+def intro() -> None:
+    """Display the game's introduction."""
     narrative = [
         "Welcome to 'The Choice: Path of Integrity'.",
         "You are a newly recruited public servant.",
         "Your duty is to serve the people with honesty and courage.",
         "But temptations, pressure, and grey areas arise quickly.",
-        "Your choices will shape your future, your reputation, and your "
+        "Your choices will shape your future, your reputation, and your ",
         "country's trust.",
         "Good luck!",
-        "Press Enter to begin your journey..."
+        "Press Enter to begin your journey...",
     ]
     for line in narrative:
         speak(line)
-    input() # Wait for user to press Enter
+    input()  # Wait for user to press Enter
+
+
+def make_choice(prompt: str, options: list[str], game_state: dict) -> int:
+    """Simulate a choice selection by the player.
+
+    Args:
+        prompt (str): The question or scenario prompt.
+        options (list[str]): List of options to choose from.
+        game_state (dict): The current game state.
+
+    Returns:
+        int: The index of the chosen option.
+    """
+    speak(prompt)
+    for i, option in enumerate(options, start=1):
+        speak(f"{i}. {option}")
+
+    while True:
+        try:
+            choice = int(input("Enter the number of your choice: ")) - 1
+            if 0 <= choice < len(options):
+                return choice
+            else:
+                speak("Invalid choice. Please select a valid option.")
+        except ValueError:
+            speak("Invalid input. Please enter a number.")
+
+
+def display_separator() -> None:
+    """Display a separator line for better readability."""
+    print("-" * MAX_LINE_LENGTH)
+
+
+def display_stats(game_state: dict) -> None:
+    """Display the current game stats.
+
+    Args:
+        game_state (dict): The current game state.
+    """
+    print("\nCurrent Stats:")
+    for key, value in game_state.items():
+        if isinstance(value, (int, str)):
+            print(f"{key.capitalize()}: {value}")
+    print()
+
 
 # --- Core Scenarios ---
 
 # 1. Corruption Case
-def corruption_case(game_state):
+def corruption_case(game_state: dict) -> None:
     """Handles the discovery of corruption involving a senior official."""
     speak(
         "Early in your tenure, you stumble upon evidence suggesting a senior "
@@ -206,7 +218,7 @@ def corruption_case(game_state):
         game_state["corruption_leaked"] = True
 
 # 2. Bribe Offer
-def bribe_offer(game_state):
+def bribe_offer(game_state: dict) -> None:
     """Handles a bribe offer from a wealthy contractor."""
     speak(
         "A major contractor, Apex Corp, is bidding for a lucrative public "
@@ -284,7 +296,7 @@ def bribe_offer(game_state):
         game_state["bribe_evidence_gathering"] = True
 
 # 3. Whistleblower Dilemma
-def whistleblower_dilemma(game_state):
+def whistleblower_dilemma(game_state: dict) -> None:
     """Handles discovering a colleague leaking sensitive information."""
     speak(
         "You accidentally discover that a colleague, Sarah, whom you "
@@ -356,7 +368,7 @@ def whistleblower_dilemma(game_state):
         game_state["colleague_relation"]["mentor"] += 1
 
 # 4. Resource Allocation Dilemma
-def resource_allocation_dilemma(game_state):
+def resource_allocation_dilemma(game_state: dict) -> None:
     """Handles allocating limited resources between competing needs."""
     speak(
         "You must allocate a limited budget between two vital projects:"
@@ -418,7 +430,7 @@ def resource_allocation_dilemma(game_state):
         game_state["stress"] += 15
 
 # 5. Nepotism Pressure
-def nepotism_pressure(game_state):
+def nepotism_pressure(game_state: dict) -> None:
     """Handles pressure to hire an unqualified relative."""
     speak(
         "Councilman Peters strongly 'suggests' you hire his nephew for an "
@@ -485,7 +497,7 @@ def nepotism_pressure(game_state):
         game_state["stress"] += 5 # Guilt?
 
 # 6. Policy Influence by Lobbyist
-def policy_influence(game_state):
+def policy_influence(game_state: dict) -> None:
     """Handles pressure from a lobbyist to alter policy wording."""
     speak("You are drafting new environmental protection regulations.")
     speak("A well-connected industry lobbyist schedules a meeting.")
@@ -549,7 +561,7 @@ def policy_influence(game_state):
         game_state["stress"] += 5
 
 # 7. Misuse of Resources
-def misuse_of_resources(game_state):
+def misuse_of_resources(game_state: dict) -> None:
     """Handles witnessing a colleague misusing office resources."""
     speak(
         "You notice colleague Mark frequently using the office printer and "
@@ -607,7 +619,7 @@ def misuse_of_resources(game_state):
         game_state["stress"] += 5 # Stress from covert action
 
 # 8. Conflict of Interest
-def conflict_of_interest(game_state):
+def conflict_of_interest(game_state: dict) -> None:
     """Handles a potential conflict of interest involving a personal connection."""
     speak(
         "Your department awards grants. A strong application comes from a "
@@ -669,7 +681,7 @@ def conflict_of_interest(game_state):
         game_state["stress"] += 10
 
 # 9. Public Statement Dilemma
-def public_statement_dilemma(game_state):
+def public_statement_dilemma(game_state: dict) -> None:
     """Handles pressure to make a misleading public statement."""
     speak(
         "A minor environmental incident occurred due to dept oversight. "
@@ -735,7 +747,7 @@ def public_statement_dilemma(game_state):
         game_state["stress"] += 10
 
 # 10. Data Privacy Issue
-def data_privacy_issue(game_state):
+def data_privacy_issue(game_state: dict) -> None:
     """Handles discovering insecure handling of sensitive citizen data."""
     speak(
         "You discover database with sensitive citizen data on old, "
@@ -792,7 +804,7 @@ def data_privacy_issue(game_state):
         game_state["stress"] += 10 # Underlying worry
 
 # 11. Ignoring Regulations
-def ignoring_regulations(game_state):
+def ignoring_regulations(game_state: dict) -> None:
     """Handles pressure to bypass regulations for speed or cost-saving."""
     speak(
         "Major infrastructure project behind schedule, over budget."
@@ -858,7 +870,7 @@ def ignoring_regulations(game_state):
         game_state["stress"] += 15 # Fear of discovery
 
 # 12. Promotion Bias
-def promotion_bias(game_state):
+def promotion_bias(game_state: dict) -> None:
     """Handles potential bias in a promotion decision."""
     speak(
         "You are on the panel to recommend a candidate for promotion."
@@ -934,7 +946,7 @@ def promotion_bias(game_state):
 
 # --- Game Ending ---
 
-def game_over(game_state, win):
+def game_over(game_state: dict, win: bool) -> None:
     """Displays the win or loss message."""
     display_separator()
     if win:
@@ -964,78 +976,47 @@ def game_over(game_state, win):
 
 # --- Main Game Loop ---
 
-def main():
+def main() -> None:
     """Runs the main game flow."""
     game_state = initialize_game_state()
     intro()
 
-    # List all available scenario functions
     all_scenarios = [
         corruption_case, bribe_offer, whistleblower_dilemma,
         resource_allocation_dilemma, nepotism_pressure, policy_influence,
         misuse_of_resources, conflict_of_interest, public_statement_dilemma,
-        data_privacy_issue, ignoring_regulations, promotion_bias
+        data_privacy_issue, ignoring_regulations, promotion_bias,
     ]
 
-    # Ensure we don't try to play more scenarios than available
     num_scenarios = min(NUM_SCENARIOS_TO_PLAY, len(all_scenarios))
+    scenarios_to_play = random.sample(all_scenarios, num_scenarios)
 
-    # Randomly select a subset of scenarios for this playthrough
-    # Ensure the sample size is not larger than the population
-    if num_scenarios > 0:
-        scenarios_to_play = random.sample(all_scenarios, num_scenarios)
-    else:
-        scenarios_to_play = [] # Handle case where 0 scenarios are requested
-
-    scenarios_played_count = 0
-
-    while scenarios_played_count < len(scenarios_to_play):
+    for scenario in scenarios_to_play:
         display_separator()
         display_stats(game_state)
+        scenario(game_state)
 
-        # Get the next scenario function from the selected list
-        current_scenario = scenarios_to_play[scenarios_played_count]
-        current_scenario(game_state) # Execute the scenario
-        scenarios_played_count += 1
-
-        # Check for win/loss conditions after each scenario
         if game_state["integrity"] >= WIN_INTEGRITY:
             game_over(game_state, win=True)
-            return # End game immediately on win
+            return
         if game_state["integrity"] <= LOSE_INTEGRITY:
             game_over(game_state, win=False)
-            return # End game immediately on loss
+            return
 
-        # Short pause before the next scenario or ending
-        time.sleep(1)
-
-    # If loop finishes without win/loss condition met, evaluate final state
     display_separator()
     display_stats(game_state)
     speak("Your journey through these challenges concludes.")
-    # Use a slightly higher threshold for a "good" ending commentary
     if game_state["integrity"] > 60:
-         speak(
-             "You faced difficult situations and largely maintained your "
-             "principles."
-         )
-         speak(f"Final Integrity: {game_state['integrity']}")
-    elif game_state["integrity"] > 40: # Add a neutral outcome message
-         speak(
-             "The path was complex, involving tough calls and compromises."
-         )
-         speak(f"Final Integrity: {game_state['integrity']}")
-    else: # For scores below neutral but not reaching the loss threshold
-         speak(
-             "The path proved challenging, and significant compromises were "
-             "made."
-          )
-         speak(f"Final Integrity: {game_state['integrity']}")
-
+        speak("You faced difficult situations and largely maintained your principles.")
+    elif game_state["integrity"] > 40:
+        speak("The path was complex, involving tough calls and compromises.")
+    else:
+        speak("The path proved challenging, and significant compromises were made.")
+    speak(f"Final Integrity: {game_state['integrity']}")
     speak("Thank you for playing 'The Choice: Path of Integrity'.")
     display_separator()
 
 
-# --- Start the Game ---
 if __name__ == "__main__":
     main()
+# End of the game script
