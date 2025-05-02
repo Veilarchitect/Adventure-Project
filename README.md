@@ -56,7 +56,7 @@ Get ready to start your public service career in minutes:
 
 ## ▶️ How to Play
 
-1. **Launch the Game:** Run `python Adventure_game.py` from the project directory.
+1. **Launch the Game:** Run `python TCPFI.py` from the project directory.
 2. **Read Carefully:** Each scenario will be presented with narrative text, mimicking a typewriter effect.
 3. **Make Your Choice:** You'll be given multiple options (usually 1-4). Type the number corresponding to your chosen action and press Enter.
 4. **Observe Consequences:** After each decision, the game will update your stats (Integrity, Reputation, Stress) and potentially award Wisdom, Inspiration, or Caution points. Pay close attention to these changes!
