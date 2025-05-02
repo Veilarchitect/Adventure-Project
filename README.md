@@ -48,7 +48,7 @@ Get ready to start your public service career in minutes:
    ```
 4. **Run the Game:** Execute the main script:
    ```bash
-   python Adventure_game.py
+   python TCPFI.py
    ```
    
 
