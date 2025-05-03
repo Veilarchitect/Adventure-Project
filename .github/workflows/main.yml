@@ -1,8 +1,35 @@
-            - name: autopep8
-  # You may pin to the exact commit or the version.
-  # uses: peter-evans/autopep8@2209b8c47cf1eec7550c1b4fb7108c0305656723
-  uses: peter-evans/autopep8@v2.0.0
-  with:
-    # Arguments to pass to autopep8
-    args: # default is --help
-          
+name: Format Python code with autopep8
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install autopep8
+        run: pip install autopep8
+
+      - name: Format code
+        run: autopep8 --in-place --recursive .
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git diff --quiet || (
+            git add .
+            git commit -m "Auto format code with autopep8"
+            git push
+          )
